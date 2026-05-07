@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#8a4fdb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Финансовый компас">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEPSURBVFhH7ZY9DsIwDIVTpA4MDFyCCzBxCSYuwcQFEFdgQupUqT8SSdukzX+Z8iQrdpzPfomdVrTWf2YjEd7pXgiLmBmBymgtpfwQuJNwVcImYdaEGwkXCQ8SPiTgZ0h4HwH/YcL1T4b/IFpFh1O5pSYh/xfUOVhI0DooSQjjSuDohzqUSQh9kGSSgDg/DAkC9EHCVkL0QYKWAOQvSPCkL1oCSL6U3hLBtwRYJTAa3xItJMAqAeMf0VICrBJgMQGSE8CzBChPAKsKAFqcAK7kKwFiPAFM1A/Z1Q/YqE8h48dgzSdAeQIYpwCvAhjnE8A4BxDlCTDyA+D6J0BzApAvhFkCaQKwWQBmCMBFgC4A/1Fm5yVtHX9zAAAAAElFTkSuQmCC">
+    <title>Финансовый компас | PWA приложение</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        :root {
+            --bg-gradient-start: #f6efff;
+            --bg-gradient-end: #ede3ff;
+            --card-bg: rgba(255, 250, 255, 0.92);
+            --card-border: rgba(200, 170, 255, 0.35);
+            --text-primary: #2c1a4a;
+            --text-secondary: #5b4290;
+            --stat-card-bg: white;
+            --stat-number-dark: #2a174b;
+            --income: #2d7a4b;
+            --expense: #c7362e;
+            --saving: #9657e0;
+            --input-bg: white;
+            --input-border: #ddcef5;
+            --btn-secondary-bg: #ede4ff;
+            --btn-secondary-color: #673fb4;
+            --danger-bg: #ffe6e4;
+            --danger-color: #bc4c44;
+            --progress-bg: #e7daff;
+            --transaction-item-bg: #fefaff;
+            --footer-color: #8a71b3;
+            --scrollbar-track: #ede2fe;
+            --scrollbar-thumb: #bc93f5;
+        }
+
+        body.dark {
+            --bg-gradient-start: #1a102f;
+            --bg-gradient-end: #24183d;
+            --card-bg: rgba(30, 22, 55, 0.92);
+            --card-border: rgba(120, 80, 180, 0.5);
+            --text-primary: #e9deff;
+            --text-secondary: #b69eff;
+            --stat-card-bg: #2a1e46;
+            --stat-number-dark: #f0e9ff;
+            --income: #5ed48a;
+            --expense: #ff7b6b;
+            --saving: #c38eff;
+            --input-bg: #2e234b;
+            --input-border: #4f3a7a;
+            --btn-secondary-bg: #392c58;
+            --btn-secondary-color: #cfb5ff;
+            --danger-bg: #4a2a2a;
+            --danger-color: #ff9f8f;
+            --progress-bg: #3d2f5c;
+            --transaction-item-bg: #2b2047;
+            --footer-color: #a086cf;
+            --scrollbar-track: #2f234f;
+            --scrollbar-thumb: #7d5fba;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            padding: 2rem 1.5rem;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Верхняя панель */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.8rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(6px);
+            border-radius: 48px;
+            padding: 0.8rem 1.8rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .profile-area {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--stat-card-bg);
+            padding: 0.5rem 1.2rem 0.5rem 1rem;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--card-border);
+        }
+
+        .avatar-icon {
+            background: #d9c5ff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: #4d2d82;
+        }
+        body.dark .avatar-icon {
+            background: #4f3b7c;
+            color: #e0ceff;
+        }
+
+        .user-info-mini {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name-mini {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .user-edit-btn {
+            background: none;
+            border: none;
+            color: #9c78e8;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-align: left;
+            margin-top: 2px;
+        }
+
+        .currency-selector {
+            background: var(--input-bg);
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+            border: 1px solid var(--input-border);
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .reset-profile-btn, .theme-toggle-btn {
+            background: var(--btn-secondary-bg);
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--btn-secondary-color);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .reset-profile-btn:hover, .theme-toggle-btn:hover {
+            opacity: 0.8;
+            transform: scale(0.97);
+        }
+
+        .title-section {
+            text-align: right;
+        }
+
+        .title-section h1 {
+            font-size: 1.7rem;
+            background: linear-gradient(120deg, #6b3bc7, #a271e0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--stat-card-bg);
+            border-radius: 28px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid #c7a7ff;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--stat-number-dark);
+        }
+
+        .income-color { color: var(--income); }
+        .expense-color { color: var(--expense); }
+        .saving-color { color: var(--saving); }
+
+        /* Две колонки */
+        .two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            padding: 1.5rem 1.8rem;
+            border: 1px solid var(--card-border);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-wrapper {
+            margin-top: 1.2rem;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .progress-bar-bg {
+            background: var(--progress-bg);
+            border-radius: 40px;
+            height: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            background: linear-gradient(90deg, #b47cff, #8a4fdb);
+            height: 100%;
+            border-radius: 40px;
+            transition: width 0.3s ease;
+        }
+
+        .goal-input-group {
+            display: flex;
+            gap: 12px;
+            margin: 1rem 0 0.5rem;
+            flex-wrap: wrap;
+        }
+        .goal-input-group input {
+            flex: 2;
+            padding: 12px 15px;
+            border-radius: 60px;
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            font-weight: 500;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .tip-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+        .tip-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .tip-list i {
+            width: 28px;
+            color: #a56eff;
+        }
+
+        /* форма */
+        .form-card {
+            margin-bottom: 2rem;
+        }
+        .transaction-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 28px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .btn-primary {
+            background: #b87cff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 12px rgba(155, 95, 255, 0.3);
+        }
+        .btn-primary:hover {
+            background: #9f5ceb;
+            transform: scale(0.97);
+        }
+        .btn-secondary {
+            background: var(--btn-secondary-bg);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: var(--btn-secondary-color);
+            cursor: pointer;
+        }
+        .danger-btn {
+            background: var(--danger-bg);
+            color: var(--danger-color);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* История */
+        .history-list {
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--transaction-item-bg);
+            padding: 14px 18px;
+            border-radius: 24px;
+            margin-bottom: 10px;
+            border-left: 5px solid;
+        }
+        .trans-income {
+            border-left-color: var(--income);
+        }
+        .trans-expense {
+            border-left-color: var(--expense);
+        }
+        .trans-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .trans-desc {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .trans-amount {
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 40px;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--footer-color);
+            border-top: 1px solid var(--card-border);
+            padding-top: 1.5rem;
+        }
+
+        /* модалка */
+        .name-edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .name-edit-card {
+            background: var(--stat-card-bg);
+            border-radius: 48px;
+            padding: 1.8rem;
+            width: 280px;
+            text-align: center;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
+            color: var(--text-primary);
+        }
+        .name-edit-card input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 60px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 1rem; }
+            .top-bar { flex-direction: column; align-items: stretch; }
+            .title-section { text-align: center; }
+            .two-cols { grid-template-columns: 1fr; }
+            .stat-number { font-size: 1.7rem; }
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-bar">
+        <div class="profile-area">
+            <div class="profile-card-mini">
+                <div class="avatar-icon"><i class="fas fa-user-astronaut"></i></div>
+                <div class="user-info-mini">
+                    <span class="user-name-mini" id="topUserName">Финансовый эксперт</span>
+                    <button id="editNameTopBtn" class="user-edit-btn"><i class="fas fa-pen"></i> Изменить имя</button>
+                </div>
+            </div>
+            <select id="topCurrencySelect" class="currency-selector">
+                <option value="RUB">₽ Рубль</option>
+                <option value="USD">$ Доллар</option>
+                <option value="EUR">€ Евро</option>
+            </select>
+            <button id="topResetProfileBtn" class="reset-profile-btn"><i class="fas fa-undo-alt"></i> Сброс</button>
+            <button id="themeToggleBtn" class="theme-toggle-btn"><i class="fas fa-moon"></i> Тёмная тема</button>
+        </div>
+        <div class="title-section">
+            <h1><i class="fas fa-coins"></i> Финансовый компас</h1>
+            <div class="subhead">Контроль трат и накоплений</div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-arrow-up"></i> Общий доход</div><div class="stat-number income-color" id="totalIncomeDisplay">0 ₽</div></div>
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-arrow-down"></i> Всего расходов</div><div class="stat-number expense-color" id="totalExpenseDisplay">0 ₽</div></div>
+        <div class="stat-card"><div class="stat-title"><i class="fas fa-piggy-bank"></i> Накопления</div><div class="stat-number saving-color" id="savingsDisplay">0 ₽</div></div>
+    </div>
+
+    <div class="two-cols">
+        <div class="glass-card">
+            <h3><i class="fas fa-bullseye"></i> Цель накоплений</h3>
+            <div class="progress-wrapper">
+                <div class="progress-label"><span>Прогресс к цели</span><span id="goalProgressPercent">0%</span></div>
+                <div class="progress-bar-bg"><div class="progress-fill" id="goalProgressFill"></div></div>
+                <div class="progress-label" style="margin-top: 15px;"><span id="currentSavingsForGoal">0 ₽</span><span id="targetGoalAmount">0 ₽</span></div>
+            </div>
+            <div class="goal-input-group">
+                <input type="number" id="goalAmountInput" placeholder="Цель, например 500000" value="500000" step="10000">
+                <button class="btn-secondary" id="setGoalBtn"><i class="fas fa-check"></i> Установить</button>
+            </div>
+            <p style="font-size: 0.75rem; margin-top: 10px; color: var(--text-secondary);"><i class="fas fa-lightbulb"></i> Накопления = доходы – расходы</p>
+        </div>
+        <div class="glass-card">
+            <h3><i class="fas fa-seedling"></i> Советы для экономии</h3>
+            <ul class="tip-list">
+                <li><i class="fas fa-calculator"></i> Правило 50/30/20: нужды, желания, сбережения</li>
+                <li><i class="fas fa-mug-hot"></i> Откажись от импульсивных покупок: выжди 48 часов</li>
+                <li><i class="fas fa-chart-line"></i> Отслеживай каждую мелкую трату</li>
+                <li><i class="fas fa-envelope"></i> Автоматизируй перевод в копилку</li>
+                <li><i class="fas fa-tag"></i> Используй кэшбэк и программы лояльности</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="glass-card form-card">
+        <h3><i class="fas fa-pen-alt"></i> Новая операция</h3>
+        <div class="transaction-form">
+            <div class="input-group"><label>Описание</label><input type="text" id="descInput" placeholder="Например: Зарплата, Продукты" autocomplete="off"></div>
+            <div class="input-group"><label>Сумма (₽)</label><input type="number" id="amountInput" placeholder="Сумма" step="1" min="1"></div>
+            <div class="input-group"><label>Тип</label><select id="typeSelect"><option value="income">💚 Доход</option><option value="expense">❤️ Расход</option></select></div>
+            <button class="btn-primary" id="addTransactionBtn"><i class="fas fa-plus-circle"></i> Добавить</button>
+        </div>
+        <div class="action-buttons">
+            <button class="btn-secondary" id="resetDemoBtn"><i class="fas fa-chart-simple"></i> Примеры</button>
+            <button class="btn-secondary danger-btn" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Очистить всё</button>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <h3><i class="fas fa-history"></i> История операций</h3>
+        <div id="transactionsList" class="history-list"><div style="text-align:center; padding:2rem;">Загрузка...</div></div>
+    </div>
+    <footer><i class="fas fa-chart-pie"></i> Установите приложение на Android: меню → Установить приложение</footer>
+</div>
+
+<div id="nameEditModal" style="display:none;" class="name-edit-modal">
+    <div class="name-edit-card">
+        <i class="fas fa-user-edit" style="font-size: 2rem; color:#a271e0;"></i>
+        <h4>Ваше имя</h4>
+        <input type="text" id="modalNameInput" placeholder="Имя">
+        <button id="modalSaveNameBtn" class="btn-primary" style="padding: 8px 20px;">Сохранить</button>
+        <button id="modalCancelBtn" class="btn-secondary" style="margin-left: 8px;">Отмена</button>
+    </div>
+</div>
+
+<script>
+    // ---------- Глобальные данные ----------
+    let transactions = [];
+    let savingsGoal = 500000;
+    let profileSettings = { userName: "Финансовый эксперт", currency: "RUB" };
+    let currentTheme = "light";
+    const currencySymbolMap = { RUB: "₽", USD: "$", EUR: "€" };
+    
+    // DOM элементы
+    const totalIncomeSpan = document.getElementById('totalIncomeDisplay');
+    const totalExpenseSpan = document.getElementById('totalExpenseDisplay');
+    const savingsSpan = document.getElementById('savingsDisplay');
+    const transactionsContainer = document.getElementById('transactionsList');
+    const goalAmountInput = document.getElementById('goalAmountInput');
+    const setGoalBtn = document.getElementById('setGoalBtn');
+    const goalProgressPercentSpan = document.getElementById('goalProgressPercent');
+    const goalProgressFillDiv = document.getElementById('goalProgressFill');
+    const currentSavingsForGoalSpan = document.getElementById('currentSavingsForGoal');
+    const targetGoalAmountSpan = document.getElementById('targetGoalAmount');
+    const addBtn = document.getElementById('addTransactionBtn');
+    const resetDemoBtn = document.getElementById('resetDemoBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const descInput = document.getElementById('descInput');
+    const amountInput = document.getElementById('amountInput');
+    const typeSelect = document.getElementById('typeSelect');
+    const topUserNameSpan = document.getElementById('topUserName');
+    const editNameTopBtn = document.getElementById('editNameTopBtn');
+    const topCurrencySelect = document.getElementById('topCurrencySelect');
+    const topResetProfileBtn = document.getElementById('topResetProfileBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const nameEditModal = document.getElementById('nameEditModal');
+    const modalNameInput = document.getElementById('modalNameInput');
+    const modalSaveNameBtn = document.getElementById('modalSaveNameBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    
+    // ---------- Тема ----------
+    function applyTheme(theme) {
+        if (theme === "dark") {
+            document.body.classList.add("dark");
+            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Светлая тема';
+        } else {
+            document.body.classList.remove("dark");
+            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Тёмная тема';
+        }
+        localStorage.setItem("theme", theme);
+        currentTheme = theme;
+    }
+    function toggleTheme() { applyTheme(currentTheme === "light" ? "dark" : "light"); updateAllUI(); }
+    function loadTheme() { const saved = localStorage.getItem("theme"); applyTheme(saved === "dark" ? "dark" : "light"); }
+    
+    // ---------- Финансы ----------
+    function formatCurrency(value) {
+        const symbol = currencySymbolMap[profileSettings.currency] || "₽";
+        const formatted = new Intl.NumberFormat('ru-RU').format(Math.floor(value));
+        return `${formatted} ${symbol}`;
+    }
+    function saveFinanceData() { localStorage.setItem('financeTransactions', JSON.stringify(transactions)); localStorage.setItem('savingsGoal', savingsGoal); }
+    function saveProfileSettings() { localStorage.setItem('userProfile', JSON.stringify(profileSettings)); }
+    function loadProfileSettings() {
+        const stored = localStorage.getItem('userProfile');
+        if (stored) {
+            try { const p = JSON.parse(stored); profileSettings.userName = p.userName || "Финансовый эксперт"; profileSettings.currency = (p.currency === "RUB" || p.currency === "USD" || p.currency === "EUR") ? p.currency : "RUB"; } catch(e) {}
+        } else { profileSettings = { userName: "Финансовый эксперт", currency: "RUB" }; }
+        topUserNameSpan.innerText = profileSettings.userName;
+        topCurrencySelect.value = profileSettings.currency;
+    }
+    function loadFinanceData() {
+        const stored = localStorage.getItem('financeTransactions');
+        if (stored) { transactions = JSON.parse(stored); }
+        else {
+            transactions = [
+                { id: Date.now() + 1, description: 'Зарплата', amount: 120000, type: 'income' },
+                { id: Date.now() + 2, description: 'Продукты', amount: 8500, type: 'expense' },
+                { id: Date.now() + 3, description: 'Кафе', amount: 4200, type: 'expense' },
+                { id: Date.now() + 4, description: 'Фриланс', amount: 25000, type: 'income' },
+                { id: Date.now() + 5, description: 'Транспорт', amount: 2100, type: 'expense' },
+                { id: Date.now() + 6, description: 'Накопления', amount: 15000, type: 'income' }
+            ];
+        }
+        const storedGoal = localStorage.getItem('savingsGoal');
+        if (storedGoal && !isNaN(parseFloat(storedGoal))) savingsGoal = parseFloat(storedGoal);
+        else savingsGoal = 500000;
+        goalAmountInput.value = savingsGoal;
+    }
+    function calculateTotals() {
+        let inc = 0, exp = 0;
+        transactions.forEach(t => { if(t.type === 'income') inc += t.amount; else if(t.type === 'expense') exp += t.amount; });
+        return { totalIncome: inc, totalExpense: exp, savings: inc - exp };
+    }
+    function updateGoalProgress(savings) {
+        let percent = 0;
+        if (savingsGoal > 0) { percent = (savings / savingsGoal) * 100; if(percent > 100) percent = 100; if(percent < 0) percent = 0; }
+        goalProgressPercentSpan.innerText = Math.floor(percent) + '%';
+        goalProgressFillDiv.style.width = percent + '%';
+        currentSavingsForGoalSpan.innerText = formatCurrency(savings);
+        targetGoalAmountSpan.innerText = formatCurrency(savingsGoal);
+        if (savings >= savingsGoal && savingsGoal > 0) goalProgressFillDiv.style.background = "#47c987";
+        else goalProgressFillDiv.style.background = "linear-gradient(90deg, #b47cff, #8a4fdb)";
+    }
+    function renderTransactionsList() {
+        if (!transactions.length) { transactionsContainer.innerHTML = `<div style="text-align:center; padding:2rem; color: var(--text-secondary);"><i class="fas fa-wallet"></i> Нет операций. Добавьте первую</div>`; return; }
+        const sorted = [...transactions].reverse();
+        transactionsContainer.innerHTML = sorted.map(t => {
+            const isInc = t.type === 'income';
+            const formatted = formatCurrency(t.amount);
+            const sign = isInc ? `+ ${formatted}` : `- ${formatted}`;
+            const cls = isInc ? 'trans-income' : 'trans-expense';
+            return `<div class="transaction-item ${cls}" data-id="${t.id}"><div class="trans-details"><div class="trans-desc">${escapeHtml(t.description)}</div><div class="trans-amount">${sign}</div></div><button class="delete-btn" data-id="${t.id}"><i class="fas fa-trash-can"></i></button></div>`;
+        }).join('');
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteTransactionById(parseInt(btn.getAttribute('data-id'))); }));
+    }
+    function escapeHtml(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    function deleteTransactionById(id) { transactions = transactions.filter(t => t.id !== id); saveFinanceData(); updateAllUI(); }
+    function addTransaction(desc, amount, type) {
+        if(!desc.trim()) { alert('Введите описание'); return false; }
+        const val = parseFloat(amount);
+        if(isNaN(val) || val <= 0) { alert('Сумма должна быть > 0'); return false; }
+        transactions.push({ id: Date.now(), description: desc.trim(), amount: val, type });
+        saveFinanceData(); updateAllUI(); return true;
+    }
+    function clearAllTransactions() { if(confirm('Удалить все операции?')) { transactions = []; saveFinanceData(); updateAllUI(); } }
+    function resetDemoTransactions() {
+        if(confirm('Загрузить демо-примеры?')) {
+            transactions = [
+                { id: Date.now()+200, description: 'Зарплата', amount: 120000, type: 'income' },
+                { id: Date.now()+201, description: 'Продукты', amount: 8500, type: 'expense' },
+                { id: Date.now()+202, description: 'Кафе', amount: 4200, type: 'expense' },
+                { id: Date.now()+203, description: 'Фриланс', amount: 25000, type: 'income' },
+                { id: Date.now()+204, description: 'Транспорт', amount: 2100, type: 'expense' },
+                { id: Date.now()+205, description: 'Бонус', amount: 15000, type: 'income' }
+            ];
+            saveFinanceData(); updateAllUI();
+        }
+    }
+    function setSavingsGoal() { let ng = parseFloat(goalAmountInput.value); if(isNaN(ng) || ng<0) { alert('Корректная цель'); return; } savingsGoal = ng; saveFinanceData(); updateAllUI(); }
+    function updateAllUI() {
+        const { totalIncome, totalExpense, savings } = calculateTotals();
+        totalIncomeSpan.innerText = formatCurrency(totalIncome);
+        totalExpenseSpan.innerText = formatCurrency(totalExpense);
+        savingsSpan.innerText = formatCurrency(savings);
+        renderTransactionsList();
+        updateGoalProgress(savings);
+    }
+    
+    // Профиль
+    function showEditNameModal() { modalNameInput.value = profileSettings.userName; nameEditModal.style.display = 'flex'; }
+    function closeModal() { nameEditModal.style.display = 'none'; }
+    function saveNameFromModal() { let newName = modalNameInput.value.trim(); if(!newName) newName = "Финансовый эксперт"; profileSettings.userName = newName; topUserNameSpan.innerText = profileSettings.userName; saveProfileSettings(); closeModal(); updateAllUI(); }
+    function changeCurrency() { const val = topCurrencySelect.value; if(val === "RUB" || val === "USD" || val === "EUR") { profileSettings.currency = val; saveProfileSettings(); updateAllUI(); } }
+    function resetProfile() { profileSettings = { userName: "Финансовый эксперт", currency: "RUB" }; saveProfileSettings(); topUserNameSpan.innerText = profileSettings.userName; topCurrencySelect.value = "RUB"; updateAllUI(); alert('Профиль сброшен'); }
+    
+    // Инициализация
+    function init() {
+        loadTheme(); loadProfileSettings(); loadFinanceData(); updateAllUI();
+        addBtn.addEventListener('click', () => { addTransaction(descInput.value, amountInput.value, typeSelect.value); descInput.value = ''; amountInput.value = ''; });
+        resetDemoBtn.addEventListener('click', resetDemoTransactions);
+        clearAllBtn.addEventListener('click', clearAllTransactions);
+        setGoalBtn.addEventListener('click', setSavingsGoal);
+        editNameTopBtn.addEventListener('click', showEditNameModal);
+        modalSaveNameBtn.addEventListener('click', saveNameFromModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        nameEditModal.addEventListener('click', (e) => { if(e.target === nameEditModal) closeModal(); });
+        topCurrencySelect.addEventListener('change', changeCurrency);
+        topResetProfileBtn.addEventListener('click', resetProfile);
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        [descInput, amountInput].forEach(inp => inp.addEventListener('keypress', (e) => { if(e.key === 'Enter') addBtn.click(); }));
+        
+        // Регистрация Service Worker для PWA
+        if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW not registered', err));
+        }
+    }
+    init();
+</script>
+<script>
+    // Генерация service worker на лету (через blob) чтобы не требовать внешний файл
+    (function() {
+        const swCode = `self.addEventListener('install', event => { self.skipWaiting(); });
+self.addEventListener('fetch', event => { event.respondWith(fetch(event.request)); });`;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swUrl).then(() => console.log('PWA ready')).catch(e => console.log(e));
+        }
+    })();
+</script>
+</body>
+</html>
