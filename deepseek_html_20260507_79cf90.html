@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Фиолетовый кошелёк | Открываемая панель</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f7f1ff 0%, #ede4ff 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* главный враппер с относительным позиционированием */
+        .app-wrapper {
+            position: relative;
+            min-height: 100vh;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        /* кнопка гамбургер (открыть панель) */
+        .burger-btn {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1001;
+            background: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(128, 0, 255, 0.15);
+            border: 1px solid #decbff;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #a855f7;
+            font-size: 1.6rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+        }
+        .burger-btn:hover {
+            background: #f0eaff;
+            transform: scale(0.96);
+        }
+
+        /* ========= БОКОВАЯ ПАНЕЛЬ (выезжающая) ========= */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100%;
+            background: rgba(250, 245, 255, 0.97);
+            backdrop-filter: blur(12px);
+            z-index: 1002;
+            transition: left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid rgba(200, 170, 255, 0.6);
+            padding: 1.8rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+
+        /* оверлей при открытой панели на мобилках/любых экранах */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(70, 40, 110, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+        }
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* кнопка закрыть внутри панели (крестик) */
+        .close-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.7rem;
+            color: #7e5ba8;
+            cursor: pointer;
+            align-self: flex-end;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+        .close-sidebar:hover {
+            color: #ac6eff;
+            transform: rotate(90deg);
+        }
+
+        /* остальные стили панели */
+        .profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px dashed #d9c8ff;
+        }
+        .avatar {
+            background: linear-gradient(135deg, #c084fc, #a855f7);
+            width: 52px;
+            height: 52px;
+            border-radius: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 12px rgba(128, 0, 255, 0.2);
+        }
+        .greeting h4 {
+            font-size: 1rem;
+            color: #5b3b8c;
+            font-weight: 500;
+        }
+        .greeting p {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #2d1b4e;
+        }
+        .widget {
+            background: rgba(255, 248, 255, 0.8);
+            border-radius: 1.5rem;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.6rem;
+            border: 1px solid #e9dfff;
+        }
+        .widget-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #7c51b3;
+            margin-bottom: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .top-expense-list {
+            list-style: none;
+        }
+        .top-expense-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0e5ff;
+            font-size: 0.85rem;
+        }
+        .expense-name { font-weight: 500; color: #3a2a55; }
+        .expense-value { font-weight: 700; color: #d43f1f; background: #fff0ec; padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.75rem; }
+        .tip-text { font-size: 0.85rem; color: #4a2d72; line-height: 1.4; padding: 0.2rem 0; font-style: italic; }
+        .quick-action { background: #ede3ff; border-radius: 1.2rem; padding: 0.8rem; text-align: center; margin-top: 0.6rem; cursor: default;}
+        
+        /* основной контент (сдвигается при открытой панели?) оставим независимым */
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            transition: margin-left 0.2s;
+        }
+        .app-container {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 35px -12px rgba(128, 0, 255, 0.15), 0 0 0 1px rgba(210, 180, 255, 0.3);
+            padding: 1.8rem 1.5rem 2.2rem;
+        }
+
+        /* остальные стили (финансовые блоки) копируем */
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .title-text { display: flex; align-items: center; gap: 12px; }
+        .title-text i { font-size: 2.1rem; color: #a855f7; text-shadow: 0 2px 6px rgba(168, 85, 247, 0.2); }
+        h1 { font-size: 1.9rem; font-weight: 600; background: linear-gradient(135deg, #7e3af2, #c084fc); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .sub { color: #6b21a5; background: #f3e8ffcc; padding: 0.2rem 0.8rem; border-radius: 40px; font-size: 0.75rem; font-weight: 500; }
+
+        .balance-card { background: white; border-radius: 2rem; padding: 1.4rem 1.8rem; margin-bottom: 1.8rem; box-shadow: 0 10px 20px -5px rgba(128, 0, 255, 0.08); border: 1px solid rgba(209, 179, 255, 0.5); text-align: center; }
+        .balance-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #6b21a5; margin-bottom: 0.5rem; }
+        .balance-amount { font-size: 3rem; font-weight: 800; color: #2d1b4e; letter-spacing: -1px; }
+        .stats-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .stat-card { flex: 1; background: white; border-radius: 1.6rem; padding: 1rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid #f0e9ff; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 2rem; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; }
+        .income-icon { color: #2b9348; background: #e6f9ed; }
+        .expense-icon { color: #d43f1f; background: #ffe8e3; }
+        .stat-number { font-size: 1.6rem; font-weight: 700; color: #2d1b3e; line-height: 1.2; }
+        .form-section { background: rgba(255, 248, 255, 0.7); border-radius: 1.8rem; padding: 1.3rem; margin-bottom: 2rem; border: 1px solid #e2d5ff; }
+        .input-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem; }
+        .input-field { flex: 1; min-width: 130px; }
+        .input-field input, .input-field select { width: 100%; padding: 12px 16px; border-radius: 2rem; border: 1px solid #decbff; background: white; outline: none; }
+        .type-switch { display: flex; gap: 12px; background: #f4edff; padding: 0.3rem; border-radius: 3rem; margin-bottom: 0.8rem; }
+        .type-option { flex: 1; text-align: center; padding: 8px 12px; border-radius: 2rem; cursor: pointer; font-weight: 500; color: #5c3a8c; }
+        .type-option.active { background: #c084fc; color: white; box-shadow: 0 2px 8px rgba(160, 100, 240, 0.3); }
+        .btn-add { background: linear-gradient(95deg, #b87cff, #9b4dff); border: none; padding: 12px 20px; border-radius: 2.5rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; width: 100%; transition: 0.2s; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center; }
+        .filter-btn { background: transparent; border: 1.5px solid #d5bdff; padding: 8px 20px; border-radius: 3rem; font-weight: 600; color: #5c3a8c; cursor: pointer; }
+        .filter-btn.active { background: #c084fc; border-color: #c084fc; color: white; }
+        .transactions-list { max-height: 440px; overflow-y: auto; padding-right: 5px; }
+        .transaction-item { background: white; border-radius: 1.5rem; margin-bottom: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid #c9adff; }
+        .transaction-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .trans-details { display: flex; flex-direction: column; }
+        .trans-desc { font-weight: 700; color: #2b1b3c; }
+        .trans-date { font-size: 0.7rem; color: #8e76b0; }
+        .trans-amount { font-weight: 800; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+        .income-amount { color: #2b9348; }
+        .expense-amount { color: #d43f1f; }
+        .delete-btn { background: none; border: none; font-size: 1.2rem; color: #b9a6dd; cursor: pointer; padding: 8px; border-radius: 50%; }
+        .delete-btn:hover { color: #e03a3a; background: #ffe8e8; }
+        .error-msg { color: #d9534f; font-size: 0.75rem; margin-top: 5px; }
+        footer { font-size: 0.7rem; text-align: center; margin-top: 1.8rem; color: #b392e0; }
+
+        @media (max-width: 680px) {
+            .app-wrapper { padding: 1rem; padding-top: 4rem; }
+            .burger-btn { top: 0.8rem; left: 0.8rem; width: 42px; height: 42px; font-size: 1.3rem; }
+            .sidebar { width: 280px; }
+            h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <!-- кнопка гамбургер для открытия панели -->
+    <div class="burger-btn" id="burgerBtn">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- выезжающая боковая панель -->
+    <aside class="sidebar" id="sidebar">
+        <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+        <div class="profile-badge">
+            <div class="avatar"><i class="fas fa-piggy-bank"></i></div>
+            <div class="greeting">
+                <h4><i class="fas fa-seedling"></i> Фиолетовый бюджет</h4>
+                <p>Ваши финансы в гармонии</p>
+            </div>
+        </div>
+
+        <div class="widget">
+            <div class="widget-title"><i class="fas fa-chart-simple"></i> 🔥 Крупные траты</div>
+            <ul class="top-expense-list" id="topExpensesList">
+                <li style="justify-content:center; color:#9c7ac5;">Загрузка...</li>
+            </ul>
+        </div>
+
+        <div class="widget">
+            <div class="widget-title"><i class="fas fa-lightbulb"></i> Мудрый совет</div>
+            <div class="tip-text" id="smartTip">
+                Откладывайте 20% от каждого дохода — создайте подушку безопасности.
+            </div>
+            <div class="quick-action">
+                <i class="fas fa-hand-holding-heart"></i> Экономия начинается с малого
+            </div>
+        </div>
+
+        <div class="widget">
+            <div class="widget-title"><i class="fas fa-chart-line"></i> Быстрый взгляд</div>
+            <div class="tip-text" id="quickOverview"></div>
+        </div>
+    </aside>
+
+    <!-- оверлей (затемнение) -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- основной контент -->
+    <div class="main-content">
+        <div class="app-container">
+            <div class="header-title">
+                <div class="title-text">
+                    <i class="fas fa-coins"></i>
+                    <h1>Фиолетовый бюджет</h1>
+                </div>
+                <div class="sub"><i class="fas fa-chart-line"></i> траты & поступления</div>
+            </div>
+
+            <div class="balance-card">
+                <div class="balance-label">ОБЩИЙ БАЛАНС</div>
+                <div class="balance-amount" id="totalBalance">0 <span class="currency-symbol">₽</span></div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon income-icon"><i class="fas fa-arrow-up"></i></div>
+                    <div class="stat-info">
+                        <h4>ДОХОДЫ</h4>
+                        <div class="stat-number" id="totalIncome">0 ₽</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon expense-icon"><i class="fas fa-arrow-down"></i></div>
+                    <div class="stat-info">
+                        <h4>РАСХОДЫ</h4>
+                        <div class="stat-number" id="totalExpense">0 ₽</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title"><i class="fas fa-pen-alt"></i> Новая операция</div>
+                <div class="input-group">
+                    <div class="input-field" style="flex:2">
+                        <input type="text" id="descInput" placeholder="Назначение (Зарплата, Кафе...)" autocomplete="off">
+                    </div>
+                    <div class="input-field" style="flex:1">
+                        <input type="number" id="amountInput" step="0.01" min="0.01" placeholder="Сумма ₽">
+                    </div>
+                </div>
+                <div class="type-switch" id="typeToggle">
+                    <label class="type-option active" id="incomeLabel">
+                        <i class="fas fa-plus-circle"></i> Доход
+                        <input type="radio" name="transType" value="income" checked hidden>
+                    </label>
+                    <label class="type-option" id="expenseLabel">
+                        <i class="fas fa-minus-circle"></i> Расход
+                        <input type="radio" name="transType" value="expense" hidden>
+                    </label>
+                </div>
+                <div id="formError" class="error-msg"></div>
+                <button class="btn-add" id="addBtn"><i class="fas fa-plus"></i> Добавить запись</button>
+            </div>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" data-filter="all">Все операции</button>
+                <button class="filter-btn" data-filter="income">Только доходы</button>
+                <button class="filter-btn" data-filter="expense">Только расходы</button>
+            </div>
+
+            <div class="transactions-list" id="transactionsList">
+                <div class="empty-message"><i class="fas fa-wallet"></i> Добавьте первую транзакцию</div>
+            </div>
+            <footer><i class="fas fa-lavender"></i> Ваши финансы в светлых тонах · данные сохраняются</footer>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ДАННЫЕ ФИНАНСОВ
+    let transactions = [];
+    let currentFilter = "all";
+
+    // DOM элементы приложения
+    const totalBalanceEl = document.getElementById("totalBalance");
+    const totalIncomeEl = document.getElementById("totalIncome");
+    const totalExpenseEl = document.getElementById("totalExpense");
+    const transactionsListEl = document.getElementById("transactionsList");
+    const descInput = document.getElementById("descInput");
+    const amountInput = document.getElementById("amountInput");
+    const addBtn = document.getElementById("addBtn");
+    const formError = document.getElementById("formError");
+    const incomeRadio = document.querySelector('input[value="income"]');
+    const expenseRadio = document.querySelector('input[value="expense"]');
+    const incomeLabel = document.getElementById("incomeLabel");
+    const expenseLabel = document.getElementById("expenseLabel");
+
+    // Элементы боковой панели (виджеты)
+    const topExpensesList = document.getElementById("topExpensesList");
+    const smartTip = document.getElementById("smartTip");
+    const quickOverview = document.getElementById("quickOverview");
+
+    // --- Управление панелью
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const burgerBtn = document.getElementById("burgerBtn");
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+
+    function openSidebar() {
+        sidebar.classList.add("open");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+    function closeSidebar() {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+    burgerBtn.addEventListener("click", openSidebar);
+    closeSidebarBtn.addEventListener("click", closeSidebar);
+    overlay.addEventListener("click", closeSidebar);
+
+    // закрытие при свайпе? необязательно, но функционально
+
+    // --- ОСНОВНЫЕ ФУНКЦИИ ФИНАНСОВ
+    function formatNumber(value) {
+        return value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateStats() {
+        let totalIncome = 0, totalExpense = 0;
+        transactions.forEach(trans => {
+            if (trans.type === "income") totalIncome += trans.amount;
+            else totalExpense += trans.amount;
+        });
+        const balance = totalIncome - totalExpense;
+        totalBalanceEl.innerHTML = `${formatNumber(balance)} <span class="currency-symbol">₽</span>`;
+        totalIncomeEl.innerHTML = `${formatNumber(totalIncome)} ₽`;
+        totalExpenseEl.innerHTML = `${formatNumber(totalExpense)} ₽`;
+    }
+
+    function renderTransactions() {
+        let filtered = [...transactions];
+        if (currentFilter === "income") filtered = transactions.filter(t => t.type === "income");
+        if (currentFilter === "expense") filtered = transactions.filter(t => t.type === "expense");
+        filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+        if (filtered.length === 0) {
+            transactionsListEl.innerHTML = `<div class="empty-message"><i class="fas fa-receipt"></i> Нет транзакций</div>`;
+            return;
+        }
+        const html = filtered.map(trans => {
+            const isIncome = trans.type === "income";
+            const amountSign = isIncome ? `+ ${formatNumber(trans.amount)}` : `- ${formatNumber(trans.amount)}`;
+            const amountClass = isIncome ? "income-amount" : "expense-amount";
+            const iconHtml = isIncome ? '<i class="fas fa-arrow-up"></i>' : '<i class="fas fa-arrow-down"></i>';
+            const iconBg = isIncome ? "#e3f5e9" : "#ffe6e0";
+            return `
+                <div class="transaction-item" data-id="${trans.id}">
+                    <div class="transaction-left">
+                        <div class="trans-icon" style="background: ${iconBg};">${iconHtml}</div>
+                        <div class="trans-details">
+                            <div class="trans-desc">${escapeHtml(trans.description)}</div>
+                            <div class="trans-date"><i class="far fa-calendar-alt"></i> ${trans.date}</div>
+                        </div>
+                    </div>
+                    <div class="trans-amount">
+                        <span class="${amountClass}">${amountSign} ₽</span>
+                        <button class="delete-btn" data-id="${trans.id}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        transactionsListEl.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            return m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;');
+        });
+    }
+
+    // Обновление виджетов в боковой панели
+    function updateSidebarWidgets() {
+        const expenses = transactions.filter(t => t.type === "expense");
+        const sortedExpenses = [...expenses].sort((a,b) => b.amount - a.amount).slice(0,3);
+        if (sortedExpenses.length === 0) {
+            topExpensesList.innerHTML = '<li style="justify-content:center; color:#9c7ac5;">Нет расходов 💜</li>';
+        } else {
+            topExpensesList.innerHTML = sortedExpenses.map(exp => `
+                <li>
+                    <span class="expense-name">${escapeHtml(exp.description.length > 20 ? exp.description.slice(0,18)+'…' : exp.description)}</span>
+                    <span class="expense-value">- ${formatNumber(exp.amount)} ₽</span>
+                </li>
+            `).join('');
+        }
+
+        const totalIncomeVal = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+        const totalExpenseVal = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const balance = totalIncomeVal - totalExpenseVal;
+        let advice = "";
+        if (balance < 0) advice = "⚠️ Расходы превышают доходы! Пересмотрите траты.";
+        else if (balance < 5000 && balance >= 0) advice = "🌱 Баланс невысокий, попробуйте откладывать 10% от каждого поступления.";
+        else if (totalExpenseVal > 0 && (totalExpenseVal / (totalIncomeVal || 1)) > 0.7) advice = "📉 Вы тратите более 70% доходов. Рекомендуем увеличить накопления.";
+        else advice = "💜 Отличная работа! Продолжайте фиксировать траты — это путь к свободе.";
+        if (transactions.length === 0) advice = "✨ Добавьте первую транзакцию, чтобы получить персонализированные советы.";
+        smartTip.innerHTML = `<i class="fas fa-feather-alt"></i> ${advice}`;
+
+        const today = new Date().toLocaleDateString('ru-RU');
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        let todayCount = 0, monthExpense = 0;
+        transactions.forEach(t => {
+            if (t.date === today) todayCount++;
+            const parts = t.date.split('.');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]), month = parseInt(parts[1])-1, year = parseInt(parts[2]);
+                if (year === currentYear && month === currentMonth && t.type === "expense") monthExpense += t.amount;
+            }
+        });
+        quickOverview.innerHTML = `<i class="fas fa-calendar-day"></i> Сегодня: ${todayCount} операций<br>
+                                    <i class="fas fa-chart-line"></i> Расходов за месяц: ${formatNumber(monthExpense)} ₽`;
+    }
+
+    // Сохранение / загрузка localStorage
+    function saveToLocal() {
+        localStorage.setItem("purpleFinanceData", JSON.stringify(transactions));
+    }
+
+    function loadFromLocal() {
+        const saved = localStorage.getItem("purpleFinanceData");
+        if (saved) {
+            transactions = JSON.parse(saved);
+            transactions = transactions.filter(t => t.id && t.description && typeof t.amount === 'number' && (t.type === 'income' || t.type === 'expense') && t.date);
+        } else {
+            // демо
+            transactions = [
+                { id: Date.now() + 101, description: "Зарплата", amount: 68500, type: "income", date: getFormattedDate(-2) },
+                { id: Date.now() + 102, description: "Продукты", amount: 4350, type: "expense", date: getFormattedDate(-1) },
+                { id: Date.now() + 103, description: "Кафе", amount: 1890, type: "expense", date: getFormattedDate(0) },
+                { id: Date.now() + 104, description: "Фриланс", amount: 12500, type: "income", date: getFormattedDate(-3) },
+                { id: Date.now() + 105, description: "Транспорт", amount: 980, type: "expense", date: getFormattedDate(0) },
+                { id: Date.now() + 106, description: "Подписка", amount: 399, type: "expense", date: getFormattedDate(0) }
+            ];
+        }
+    }
+
+    function getFormattedDate(offsetDays) {
+        const date = new Date();
+        date.setDate(date.getDate() + offsetDays);
+        return date.toLocaleDateString('ru-RU');
+    }
+
+    function addTransaction(description, amount, type) {
+        if (!description.trim()) { formError.innerText = "❌ Укажите описание"; return false; }
+        if (isNaN(amount) || amount <= 0) { formError.innerText = "❌ Введите сумму > 0"; return false; }
+        formError.innerText = "";
+        const newTrans = {
+            id: Date.now() + Math.floor(Math.random() * 10000),
+            description: description.trim(),
+            amount: parseFloat(amount),
+            type: type,
+            date: new Date().toLocaleDateString('ru-RU')
+        };
+        transactions.push(newTrans);
+        saveToLocal();
+        updateStats();
+        renderTransactions();
+        updateSidebarWidgets();
+        return true;
+    }
+
+    function deleteTransactionById(id) {
+        transactions = transactions.filter(t => t.id != id);
+        saveToLocal();
+        updateStats();
+        renderTransactions();
+        updateSidebarWidgets();
+    }
+
+    // UI фильтры и переключение
+    function setActiveFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            if (btn.getAttribute('data-filter') === filter) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        renderTransactions();
+    }
+
+    function setActiveTypeStyle(type) {
+        if (type === "income") {
+            incomeLabel.classList.add("active");
+            expenseLabel.classList.remove("active");
+            incomeRadio.checked = true;
+        } else {
+            expenseLabel.classList.add("active");
+            incomeLabel.classList.remove("active");
+            expenseRadio.checked = true;
+        }
+    }
+
+    function getSelectedType() { return incomeRadio.checked ? "income" : "expense"; }
+
+    function onAddClick() {
+        const description = descInput.value;
+        let amount = parseFloat(amountInput.value);
+        if (isNaN(amount)) amount = 0;
+        const success = addTransaction(description, amount, getSelectedType());
+        if (success) { descInput.value = ""; amountInput.value = ""; descInput.focus(); }
+    }
+
+    function handleListClick(e) {
+        const deleteBtn = e.target.closest(".delete-btn");
+        if (deleteBtn) {
+            const id = parseInt(deleteBtn.getAttribute("data-id"));
+            if (id) deleteTransactionById(id);
+        }
+    }
+
+    function clearErrorOnInput() { if (formError.innerText) formError.innerText = ""; }
+
+    function init() {
+        loadFromLocal();
+        updateStats();
+        renderTransactions();
+        updateSidebarWidgets();
+
+        addBtn.addEventListener("click", onAddClick);
+        transactionsListEl.addEventListener("click", handleListClick);
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => setActiveFilter(btn.getAttribute("data-filter")));
+        });
+        incomeLabel.addEventListener("click", () => setActiveTypeStyle("income"));
+        expenseLabel.addEventListener("click", () => setActiveTypeStyle("expense"));
+        descInput.addEventListener("input", clearErrorOnInput);
+        amountInput.addEventListener("input", clearErrorOnInput);
+        const handleEnter = (e) => { if (e.key === "Enter") onAddClick(); };
+        descInput.addEventListener("keypress", handleEnter);
+        amountInput.addEventListener("keypress", handleEnter);
+        if (incomeRadio.checked) setActiveTypeStyle("income");
+        else setActiveTypeStyle("expense");
+    }
+
+    init();
+</script>
+</body>
+</html>
